@@ -40,16 +40,36 @@ curl -fsSL https://raw.githubusercontent.com/kingcwt/workhours-claude/main/insta
 ## 使用
 
 ```
-/workhours                              # 导出本周工时（默认）
-/workhours --time 今天                  # 导出今天
-/workhours --time 上周                  # 导出上周
-/workhours --time 2026-03-20            # 导出指定日期
-/workhours --time 2026-03-18~2026-03-20 # 导出日期范围
-/workhours --time 本月 --filter geo_tool # 本月工时，排除某个项目
-/workhours --help                       # 查看帮助
+/workhours                               # 导出本周工时（默认）
+/workhours --time 今天                   # 导出今天
+/workhours --time 上周                   # 导出上周
+/workhours --time 2026-03-20             # 导出指定日期
+/workhours --time 2026-03-18~2026-03-20  # 导出日期范围
+/workhours --time 本月 --filter geo_tool  # 本月工时，排除某个项目
+/workhours --filter wpt,cmc-ai           # 排除多个项目
+/workhours --c                           # 纯文本模式，方便粘贴复制
+/workhours --time 今天 --c               # 今天 + 纯文本模式
+/workhours --help                        # 查看帮助
 ```
 
 导出文件保存到 `~/Desktop/工时记录_<时间范围>.md`。
+
+### 两种输出模式
+
+**默认（表格模式）**
+```markdown
+### 上午
+| 时间  | 项目     | 工作描述                 |
+|-------|----------|--------------------------|
+| 10:27 | geo_tool | feat: 调整适应症相关逻辑 |
+```
+
+**`--c` 纯文本模式**（粘贴到钉钉、飞书、微信等不乱格式）
+```markdown
+### 上午
+`10:27` `geo_tool / main` feat: 调整适应症相关逻辑
+`11:15` `wpt / main` fix: 修复编辑器 UI 问题
+```
 
 ## 注意事项
 
