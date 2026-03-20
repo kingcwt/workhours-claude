@@ -1,0 +1,54 @@
+#!/bin/sh
+# workhours post-commit hook
+# Logs every git commit to ~/.workhours/git-commit-log.txt
+# https://github.com/kingcwt/workhours-claude
+
+LOG_FILE="$HOME/.workhours/git-commit-log.txt"
+SKIP_MERGE="1"
+
+repo="$(git rev-parse --show-toplevel 2>/dev/null)"
+project_name="$(basename "$repo")"
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+hash="$(git rev-parse HEAD 2>/dev/null)"
+author_name="$(git log -1 --pretty=format:%an 2>/dev/null)"
+author_email="$(git log -1 --pretty=format:%ae 2>/dev/null)"
+commit_time="$(git log -1 --pretty=format:%cI 2>/dev/null)"
+subject="$(git log -1 --pretty=format:%s 2>/dev/null)"
+body="$(git log -1 --pretty=format:%b 2>/dev/null)"
+parents="$(git log -1 --pretty=format:%P 2>/dev/null)"
+changed_files="$(git show --name-only --pretty=format: HEAD 2>/dev/null | sed '/^$/d')"
+changed_stats="$(git show --shortstat --pretty=format: HEAD 2>/dev/null | tail -n 1)"
+
+if [ -z "$hash" ] || [ -z "$repo" ]; then exit 0; fi
+
+if [ "$SKIP_MERGE" = "1" ]; then
+  if printf '%s' "$parents" | grep -q ' '; then exit 0; fi
+fi
+
+message="$subject"
+if [ -n "$body" ]; then
+  message="$subject
+$body"
+fi
+
+mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null
+
+{
+  printf '%s\n' '-----'
+  printf 'captured_at=%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+  printf 'commit_time=%s\n' "$commit_time"
+  printf 'project=%s\n' "$project_name"
+  printf 'repo=%s\n' "$repo"
+  printf 'branch=%s\n' "$branch"
+  printf 'hash=%s\n' "$hash"
+  printf 'author=%s <%s>\n' "$author_name" "$author_email"
+  printf 'message<<EOF\n'
+  printf '%s\n' "$message"
+  printf 'EOF\n'
+  printf 'changed_files<<EOF\n'
+  printf '%s\n' "$changed_files"
+  printf 'EOF\n'
+  printf 'stats=%s\n' "$changed_stats"
+} >> "$LOG_FILE" 2>/dev/null
+
+exit 0
