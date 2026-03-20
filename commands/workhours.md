@@ -32,11 +32,19 @@ curl -fsSL https://raw.githubusercontent.com/kingcwt/workhours-claude/main/insta
 - `--filter geo_tool`
 - `--filter geo_tool,wpt`
 
+### --c
+切换为纯文本模式（不使用表格），方便粘贴复制到其他地方。
+
+每条记录格式为：
+```
+`时间` `项目 / 分支` 工作描述
+```
+
 ### --help
 显示帮助信息。
 
 ```
-用法：/workhours [--time <时间>] [--filter <项目>] [--help]
+用法：/workhours [--time <时间>] [--filter <项目>] [--c] [--help]
 
 示例：
   /workhours
@@ -46,6 +54,8 @@ curl -fsSL https://raw.githubusercontent.com/kingcwt/workhours-claude/main/insta
   /workhours --time 2026-03-18~2026-03-20
   /workhours --time 本月 --filter geo_tool
   /workhours --filter wpt,cmc-ai
+  /workhours --c
+  /workhours --time 今天 --c
 ```
 
 ---
@@ -58,6 +68,7 @@ curl -fsSL https://raw.githubusercontent.com/kingcwt/workhours-claude/main/insta
 - 包含 `--help` → 输出帮助信息，结束
 - 提取 `--time` 的值（默认「本周」）
 - 提取 `--filter` 的值，逗号分割成列表
+- 包含 `--c` → 标记为纯文本模式（compact mode）
 
 **第一步：检查日志文件**
 
@@ -124,6 +135,12 @@ date -j -f "%Y-%m-%d" "2026-03-20" "+%u"  # 返回数字 1=周一 ... 7=周日
 ```
 对应关系：1=周一 2=周二 3=周三 4=周四 5=周五 6=周六 7=周日
 
+**根据是否有 `--c` 参数，使用不同格式：**
+
+- 无 `--c`（默认）→ 表格模式（见输出模板 A）
+- 有 `--c` → 纯文本模式（见输出模板 B），每条记录一行，格式为：
+  `` `时间` `项目 / 分支` 工作描述 ``
+
 **第六步：保存文件**
 
 文件名规则：
@@ -140,10 +157,12 @@ date -j -f "%Y-%m-%d" "2026-03-20" "+%u"  # 返回数字 1=周一 ... 7=周日
 
 ## 输出模板
 
+### 模板 A（默认，表格模式）
+
 ```markdown
 # 工时记录
 
-**统计周期**：2026-03-17（周一）～ 2026-03-20（周四）
+**统计周期**：2026-03-17（周一）～ 2026-03-20（周五）
 **导出时间**：2026-03-20 15:30
 **项目过滤**：geo_tool、wpt（仅在使用 --filter 时显示此行）
 
@@ -164,6 +183,34 @@ date -j -f "%Y-%m-%d" "2026-03-20" "+%u"  # 返回数字 1=周一 ... 7=周日
 |------|------|----------|
 | 13:46 | cmc-ai | feat: 调整sov筛选页面 |
 | 18:26 | geo_tool | feat: 新增适应症支持编辑和删除 |
+
+---
+
+**合计提交**：XX 条（已过滤 checkpoint 自动提交 X 条）
+**涉及项目**：geo_tool、cmc-ai、wpt
+```
+
+### 模板 B（--c 纯文本模式）
+
+```markdown
+# 工时记录
+
+**统计周期**：2026-03-17（周一）～ 2026-03-20（周五）
+**导出时间**：2026-03-20 15:30
+
+---
+
+## 2026-03-17 周一
+
+### 上午
+
+`10:27` `geo_tool / feature/311_result` feat: 调整适应症相关逻辑
+`11:15` `geo_tool / feature/311_result` fix: 调整维度1图表匹配规则
+
+### 下午
+
+`13:46` `cmc-ai / main` feat: 调整sov筛选页面
+`18:26` `geo_tool / feature/311_result` feat: 新增适应症支持编辑和删除
 
 ---
 
