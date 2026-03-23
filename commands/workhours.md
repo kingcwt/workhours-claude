@@ -58,24 +58,63 @@ curl -fsSL https://raw.githubusercontent.com/kingcwt/workhours-claude/main/insta
 - 每条记录只显示描述内容 + 工时，不显示时间和项目列
 - 底部汇总所有项目总工时
 
+### --add <项目> "<描述>" [--am|--pm]
+手动添加一条记录到今天的工时日志，用于不涉及 Git 提交的工作（如开会、需求评审等）。
+
+**语法：**
+```
+/workhours --add <项目名称> "<描述 [-t Xh|Xm]>" [--am|--pm]
+```
+
+**时间段规则：**
+- `--am` → 写入今天上午，时间戳设为 `今天 09:00:00`
+- `--pm` → 写入今天下午，时间戳设为 `今天 14:00:00`
+- 不传 → 根据当前实际时间判断：当前时间 < 12:00 则上午，≥ 12:00 则下午，时间戳用当前时间
+
+**`-t` 规则：**
+- 描述中带 `-t 1h` → 该记录花费 1 小时
+- 描述中带 `-t 30m` → 该记录花费 30 分钟
+- 不带 `-t` → 导出时按时段自动平均分配
+
+**执行动作：**
+向 `~/.workhours/git-commit-log.txt` 追加一条记录，格式与 git hook 一致：
+```
+-----
+captured_at=<当前UTC时间>
+commit_time=<今天日期T时间+08:00>
+project=<项目名称>
+repo=manual
+branch=manual
+hash=manual-<YYYYMMDDHHmmss>
+author=manual <manual>
+message<<EOF
+<描述内容（保留 -t 标记）>
+EOF
+changed_files<<EOF
+EOF
+stats=
+```
+
+执行完成后，告知用户：「已添加：[项目] [描述] → 今天[上午/下午]」
+
 ### --help
 显示帮助信息。
 
 ```
 用法：/workhours [--time <时间>] [--filter <项目>] [--c] [--cp] [--help]
+     /workhours --add <项目> "<描述 [-t Xh|Xm]>" [--am|--pm]
 
 示例：
-  /workhours
-  /workhours --time 今天
-  /workhours --time 上周
-  /workhours --time 2026-03-20
-  /workhours --time 2026-03-18~2026-03-20
-  /workhours --time 本月 --filter geo_tool
-  /workhours --filter wpt,cmc-ai
-  /workhours --c
-  /workhours --time 今天 --c
-  /workhours --cp
-  /workhours --time 本周 --cp
+  /workhours                                        # 导出本周工时
+  /workhours --time 今天                            # 导出今天
+  /workhours --time 上周                            # 导出上周
+  /workhours --c                                    # 纯文本模式
+  /workhours --cp                                   # 按项目分组工时
+  /workhours --time 今天 --cp                       # 今天按项目工时
+  /workhours --add 其他 "开会一小时 -t 1h" --am    # 添加今天上午记录
+  /workhours --add 其他 "需求评审 -t 2h" --pm      # 添加今天下午记录
+  /workhours --add 其他 "临时任务"                  # 按当前时间自动判断上下午
+```
 ```
 
 ---
